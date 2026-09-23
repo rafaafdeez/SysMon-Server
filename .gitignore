@@ -1,0 +1,14 @@
+# Compiled Java class files
+target/
+*.class
+
+# IDE configurations files
+.vscode/
+.idea/
+*.iml
+*.project
+*.classpath
+
+# Logs and temporary files
+*.log
+.DS_Store
