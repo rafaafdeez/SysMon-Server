@@ -13,7 +13,7 @@ The system follows a decoupled, distributed architecture:
 
 ## 🚀 Requirements
 
-- Java 17 or higher
+- Java 25 or higher
 - Maven 3.6+
 
 ## 🛠️ Build and Run
