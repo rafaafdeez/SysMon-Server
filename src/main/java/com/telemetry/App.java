@@ -1,5 +1,6 @@
 package com.telemetry;
 
+import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
@@ -7,6 +8,12 @@ import java.net.Socket;
 
 public class App {
     public static void main(String[] args) {
+        // Inicialize the database and ensure the metrics table exists
+        DatabaseManager.initDatabase();
+
+        DatabaseManager.clearTable(); // Clear the table at the start of each session
+        
+        Gson gson = new Gson();
         int port = 8080;
         
         //Start the server on port 8080
@@ -15,7 +22,7 @@ public class App {
             
             //Infinite loop to keep the server alive waiting for connections
             while (true) {
-                // he program pauses here until the C++ agent connects
+                // The program pauses here until the C++ agent connects
                 try (Socket clientSocket = serverSocket.accept();
                      BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
                     
@@ -23,11 +30,22 @@ public class App {
                     String inputLine;
                     StringBuilder payload = new StringBuilder();
                     while ((inputLine = in.readLine()) != null) {
-                        payload.append(inputLine).append("\n");
+                        payload.append(inputLine);
                     }
                     
-                    //Print the received JSON to the console
-                    System.out.println("[New Payload Received]:\n" + payload.toString());
+                    String jsonString = payload.toString().trim();
+                    
+                    if (!jsonString.isEmpty()) {
+                        //Print the received JSON to the console
+                        System.out.println("[New Payload Received]:\n" + jsonString);
+                        
+                        // 2. Transformar el JSON a objeto Java
+                        TelemetryPayload data = gson.fromJson(jsonString, TelemetryPayload.class);
+                        
+                        // 3. Insertar el dato en la nube (Supabase)
+                        DatabaseManager.insertMetric(data);
+                        System.out.println("[DB] Fila inyectada correctamente en Supabase.");
+                    }
                     
                 } catch (Exception e) {
                     System.err.println("[Read Error]: " + e.getMessage());
